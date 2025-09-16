@@ -3,7 +3,7 @@
 
 def test_skeleton_objects():
     from hipose.skeleton import Skeleton, SkeletonXsens, \
-        SkeletonErgowear, SkeletonMTwAwinda, SkeletonXsensUpper
+        SkeletonErgowear, SkeletonMTwAwinda, SkeletonXsensUpper, SkeletonMTwAwindaUpperBody
 
     s1 = Skeleton(root_joint=0, joint_names=["j1", "j2", "j3"],
                   segment_starts=[0, 1], segment_ends=[1, 2])
@@ -11,6 +11,7 @@ def test_skeleton_objects():
     s2 = SkeletonMTwAwinda()
     s3 = SkeletonErgowear()
     s4 = SkeletonXsensUpper()
+    s5 = SkeletonMTwAwindaUpperBody()
 
 
 def test_skeleton_mappings():

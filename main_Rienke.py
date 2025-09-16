@@ -5,7 +5,7 @@ from hipose.data.trial_parsing.extract_xsens_analyse import extract_xsens_analys
 example_data_path = "C:\\Users\\rienk\\OneDrive - University of Twente\\BME\\Internship\\3. project content\\Python\\Xsens_data\\0915_demo3_ Npose"
 imu_data = extract_xsens_analyse_raw_data(example_data_path)
 
-print(imu_data)
+# print(imu_data)
 
 # initialize filter fusion (example trial has 17 IMUs)
 from hipose.api.fusion_filter import InertialPoseFusionFilter
@@ -32,3 +32,20 @@ for idx, (acc, gyr, mag) in enumerate(zip(imu_data["acc"][calib_end:],
                                           imu_data["mag"][calib_end:])):
     pred_ori = ffilts.update(acc=acc, gyr=gyr, mag=mag)
 
+print(pred_ori)
+
+from hipose.skeleton import SkeletonXsens, SkeletonMTwAwinda, SkeletonVisualizer, SkeletonMTwAwindaUpperBody
+skel_pred = SkeletonMTwAwindaUpperBody(ref_angles="npose", segment_lengths=None)
+skel_gt = SkeletonXsens(ref_angles="npose", segment_lengths=None)
+
+vis = SkeletonVisualizer(dict(skel_pred=skel_pred),
+                        display_segment_axis=True,         # turn off for faster rendering
+                        animation_fps=imu_data["freq"])
+
+# visualize motion in 3D (pred vs GT)
+vis.show3d(
+        skeletons_orient_dict=dict(skel_pred=pred_ori)
+        # skeletons_root_pos=dict(
+        #         skel_gt=root_pos[0],
+        #         skel_pred=root_pos[0] + [0, 1.25, 0]),
+)
