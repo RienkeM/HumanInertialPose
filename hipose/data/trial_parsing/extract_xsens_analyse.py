@@ -59,7 +59,7 @@ def remove_zero_columns(df):
     # Sum the absolute values of each column. A sum of 0 means all values are 0.
     # The .any() check is used to handle potential NaN values as well.
     cols_to_keep = (df.abs().sum() != 0)
-    return df.loc[:, cols_to_keep]
+    return df.loc[:, cols_to_keep], cols_to_keep
 
 def extract_xsens_analyse_raw_data(xsens_trial_path):
     """
@@ -88,7 +88,7 @@ def extract_xsens_analyse_raw_data(xsens_trial_path):
     angular_velocity, imus_free_acc, imus_mag = pd.read_excel(
             xsens_file_path,
             sheet_name=[
-                        "Sensor Orientation - Euler",     # segment angular velocity (gyroscope-like data in segment referential) ???
+                        "Segment Angular Velocity",     # segment angular velocity (gyroscope-like data in segment referential) ???
                         "Sensor Free Acceleration",       # sensor free acceleration (accelerometer data without gravity vector)
                         "Sensor Magnetic Field",          # sensor magnetometer data?
                         ],
@@ -100,10 +100,11 @@ def extract_xsens_analyse_raw_data(xsens_trial_path):
     # assumes a perfect sampling freq of 60hz
     timestamps = np.arange(1, n_samples + 1) * (1 / 60.)
 
-    imus_free_acc = remove_zero_columns(imus_free_acc)
-    imus_gyr = remove_zero_columns(angular_velocity)
-    imus_mag = remove_zero_columns(imus_mag)
-    print(imus_gyr.head())
+    imus_free_acc, column_indices = remove_zero_columns(imus_free_acc)
+    imus_mag, _ = remove_zero_columns(imus_mag)
+    # imus_gyr = remove_zero_columns(angular_velocity)
+    imus_gyr = angular_velocity.loc[:, column_indices]
+    # print(imus_gyr.head())
 
     # sensor data (mapped to respective segments)
     imus_free_acc = imus_free_acc.values.reshape(n_samples, -1, 3)
