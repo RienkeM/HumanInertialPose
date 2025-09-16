@@ -4,7 +4,7 @@ import numpy as np
 
 try:
     import pyqtgraph.opengl as gl
-    from pyqtgraph.Qt import QtGui
+    from pyqtgraph.Qt import QtGui, QtWidgets
 except:
     import warnings
     warnings.warn("Additional dependencies are needed for 3D visualization! "
@@ -43,7 +43,7 @@ class Visualizer3d(object):
 
     def _set3d_plot(self, use_isb_ref=False, window_title="Display3d"):
         # add graphical window
-        self._app = QtGui.QApplication([])
+        self._app = QtWidgets.QApplication([])
         # create window with 3D plot inside
         self.window = gl.GLViewWidget()
         self.window.show()
