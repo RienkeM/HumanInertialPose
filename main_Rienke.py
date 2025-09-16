@@ -10,7 +10,7 @@ print(imu_data)
 # initialize filter fusion (example trial has 17 IMUs)
 from hipose.api.fusion_filter import InertialPoseFusionFilter
 ffilts = InertialPoseFusionFilter(
-        num_imus=17, 
+        num_imus=11, 
         ignore_mag=False,
         fusion_filter_alg="madgwick",
         s2s_calib_method="static_mag",
@@ -26,8 +26,9 @@ ffilts.compute_imus_calibration(acc_calib_data=imu_data["acc"][calib_start:calib
                                 gyr_calib_data=imu_data["gyr"][calib_start:calib_end],
                                 mag_calib_data=imu_data["mag"][calib_start:calib_end])
 
-# # # perform filter fusion on trial data to obtain segment orientations
-# # for idx, (acc, gyr, mag) in enumerate(zip(imu_data["acc"][calib_s:],
-# #                                           imu_data["gyr"][calib_s:],
-# #                                           imu_data["mag"][calib_s:])):
-# #     pred_ori = ffilts.update(acc=acc, gyr=gyr, mag=mag)
+# perform filter fusion on trial data to obtain segment orientations
+for idx, (acc, gyr, mag) in enumerate(zip(imu_data["acc"][calib_end:],
+                                          imu_data["gyr"][calib_end:],
+                                          imu_data["mag"][calib_end:])):
+    pred_ori = ffilts.update(acc=acc, gyr=gyr, mag=mag)
+
