@@ -1,8 +1,12 @@
 # File to try the data processing with our own datasets
 
 from hipose.data.trial_parsing.extract_xsens_analyse import extract_xsens_analyse_raw_data
-# example_data_path = "C:/Users/rienk/OneDrive - University of Twente/BME/BME/Internship/3. project content/Python/"
-example_data_path = "C:\\Users\\rienk\\OneDrive - University of Twente\\BME\\Internship\\3. project content\\Python\\Xsens_data\\0915_demo3_ Npose"
+# example_data_path = "C:\\Users\\rienk\\OneDrive - University of Twente\\BME\\Internship\\3. project content\\Python\\Xsens_data\\0905_demo2_seated"
+# example_data_path = "C:\\Users\\rienk\\OneDrive - University of Twente\\BME\\Internship\\3. project content\\Python\\Xsens_data\\0915_demo3_Npose"
+# example_data_path = "C:\\Users\\rienk\\OneDrive - University of Twente\\BME\\Internship\\3. project content\\Python\\Xsens_data\\0915_demo4_Npose"
+# example_data_path = "C:\\Users\\rienk\\OneDrive - University of Twente\\BME\\Internship\\3. project content\\Python\\Xsens_data\\0915_demo5_Tpose"
+example_data_path = "C:\\Users\\rienk\\OneDrive - University of Twente\\BME\\Internship\\3. project content\\Python\\Xsens_data"
+
 imu_data = extract_xsens_analyse_raw_data(example_data_path)
 
 # print(imu_data)
@@ -39,7 +43,7 @@ skel_pred = SkeletonMTwAwindaUpperBody(ref_angles="npose", segment_lengths=None)
 skel_gt = SkeletonXsens(ref_angles="npose", segment_lengths=None)
 
 vis = SkeletonVisualizer(dict(skel_pred=skel_pred),
-                        display_segment_axis=True,         # turn off for faster rendering
+                        display_segment_axis=False,         # turn off for faster rendering
                         animation_fps=imu_data["freq"])
 
 # visualize motion in 3D (pred vs GT)
@@ -49,3 +53,9 @@ vis.show3d(
         #         skel_gt=root_pos[0],
         #         skel_pred=root_pos[0] + [0, 1.25, 0]),
 )
+
+from pyqtgraph.Qt import QtWidgets
+app = QtWidgets.QApplication.instance()
+if app is None:
+    app = QtWidgets.QApplication([])
+app.exec_()
