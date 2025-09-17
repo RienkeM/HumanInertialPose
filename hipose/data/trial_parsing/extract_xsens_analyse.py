@@ -99,11 +99,18 @@ def extract_xsens_analyse_raw_data(xsens_trial_path):
 
     # assumes a perfect sampling freq of 60hz
     timestamps = np.arange(1, n_samples + 1) * (1 / 60.)
-
-    imus_free_acc, column_indices = remove_zero_columns(imus_free_acc)
-    imus_mag, _ = remove_zero_columns(imus_mag)
-    # imus_gyr = remove_zero_columns(angular_velocity)
-    imus_gyr = angular_velocity.loc[:, column_indices]
+    
+    upper_body_indices = [
+    True, True, True, False, False, False, False, False, False, False, False,
+    False, True, True, True, False, False, False, True, True, True,
+    True, True, True, True, True, True, True, True, True, True,
+    True, True, True, True, True, True, True, True, True, True,
+    True, True, True, True, False, False, False, False, False, False,
+    False, False, False, False, False, False, False, False, False, False,
+    False, False, False, False, False, False, False, False]
+    imus_free_acc = imus_free_acc.loc[:, upper_body_indices]
+    imus_mag = imus_mag.loc[:, upper_body_indices]
+    imus_gyr = angular_velocity.loc[:, upper_body_indices]
     # print(imus_gyr.head())
 
     # sensor data (mapped to respective segments)
