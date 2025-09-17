@@ -1,13 +1,13 @@
 # File to try the data processing with our own datasets
 
-from hipose.data.trial_parsing.extract_xsens_analyse import extract_xsens_analyse_raw_data
+from hipose.data.trial_parsing.extract_xsens_analyse import extract_xsens_analyse_raw_data2
 # example_data_path = "C:\\Users\\rienk\\OneDrive - University of Twente\\BME\\Internship\\3. project content\\Python\\Xsens_data\\0905_demo2_seated"
-# example_data_path = "C:\\Users\\rienk\\OneDrive - University of Twente\\BME\\Internship\\3. project content\\Python\\Xsens_data\\0915_demo3_Npose"
+example_data_path = "C:\\Users\\rienk\\OneDrive - University of Twente\\BME\\Internship\\3. project content\\Python\\Xsens_data\\0915_demo3_Npose"
 # example_data_path = "C:\\Users\\rienk\\OneDrive - University of Twente\\BME\\Internship\\3. project content\\Python\\Xsens_data\\0915_demo4_Npose"
 # example_data_path = "C:\\Users\\rienk\\OneDrive - University of Twente\\BME\\Internship\\3. project content\\Python\\Xsens_data\\0915_demo5_Tpose"
-example_data_path = "C:\\Users\\rienk\\OneDrive - University of Twente\\BME\\Internship\\3. project content\\Python\\Xsens_data"
+# example_data_path = "C:\\Users\\rienk\\OneDrive - University of Twente\\BME\\Internship\\3. project content\\Python\\Xsens_data"
 
-imu_data = extract_xsens_analyse_raw_data(example_data_path)
+imu_data = extract_xsens_analyse_raw_data2(example_data_path)  # use the Sensor Angular Velocity tab
 
 # print(imu_data)
 
