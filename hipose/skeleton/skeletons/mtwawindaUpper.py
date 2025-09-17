@@ -1,7 +1,7 @@
 
 import numpy as np
 
-from .base_skeleton import Skeleton, r, b, g, gr
+from .base_skeleton import Skeleton, r, b, g, gr, w, y
 from hipose.rotations import quat_mult, convert_euler_to_quat
 
 
@@ -17,7 +17,7 @@ mtwawinda_segment_names = (
 class SkeletonMTwAwindaUpperBody(Skeleton):
     """
     Define a Skeleton structure like the one used by MTwAwinda for the upper body only, containing:
-#     (22 keypoints), (17 joints) and (17 segments).
+#     (14 keypoints), (11 joints) and (13 segments).
     """
     def __init__(self, segment_lengths=None, ref_angles="tpose"):
         joint_names = [
@@ -29,8 +29,8 @@ class SkeletonMTwAwindaUpperBody(Skeleton):
         ]
 
         end_points = ["(top_head)",                                                     # [11]
-                      "(right_hand_finger_tips)", "(left_hand_finger_tips)",            # [12, 13]
-                      "(pelvis)"                                                          # [14]
+                      "(right_hand_finger_tips)", "(left_hand_finger_tips)"            # [12, 13]
+                    #   "(pelvis)"                                                          # [14]
                 #       "(right_toes)", "(left_toes)"                                     # [20, 21]
         ]
 
@@ -56,15 +56,19 @@ class SkeletonMTwAwindaUpperBody(Skeleton):
         #              | pelvis->head(3) |  right arm(5)    |   left arm(5)     # |  right leg(4)   |   left leg(4)
         seg_start_pts = [0, 1, 2,          2,  3, 4, 5, 6,    2,  7, 8, 9,  10] #,   0,  11, 12, 13,   0,  14, 15, 16]
         seg_end_pts   = [1, 2, 11,         3,  4, 5, 6, 12,   7,  8, 9, 10, 13] #,   11, 12, 13, 20,   14, 15, 16, 21]
-        seg_colors    = [g, g, g,          gr, r, r, r, r,    gr, b, b, b,  b]  #,    gr,  r, r,  r,    gr, b,  b,  b]
-        seg_names     = ["lower_back", "upper_back", "neck",
+
+        seg_colors    = [y, y, y,          gr, r, r, r, r,    gr, b, b, b,  b]  #,    gr,  r, r,  r,    gr, b,  b,  b]
+        seg_names     = ["back", "neck", "head",
                          "(right_scapular)", "right_shoulder", "right_upper_arm", "right_forearm", "right_hand",
                          "(left_scapular)",  "left_shoulder",  "left_upper_arm",  "left_forearm", "left_hand",
+        # seg_names     = ["lower_back", "upper_back", "neck",
+        #                  "(right_scapular)", "right_shoulder", "right_upper_arm", "right_forearm", "right_hand",
+        #                  "(left_scapular)",  "left_shoulder",  "left_upper_arm",  "left_forearm", "left_hand",
                          ] #"(right_pelvis)", "right_upper_leg", "right_lower_leg", "right_foot",
                          # "(left_pelvis)", "left_upper_leg", "left_lower_leg", "left_foot"]
 
         # default segment lengths
-        seg_lengths = (np.array([0.30, 0.25, 0.10,
+        seg_lengths = (np.array([0.60, 0.10, 0.10,  # altered
                                  0.05, 0.10, 0.35, 0.25, 0.10,
                                  0.05, 0.10, 0.35, 0.25, 0.10 ]) #,
                                 #  0.10, 0.45, 0.43, 0.10,
@@ -182,7 +186,7 @@ class SkeletonMTwAwindaUpperBody(Skeleton):
         # ????
         nodummy_idx = [0, 1, 2,
                        4, 5, 6, 7,              # 3
-                       9, 10, 11, 12,           # 8
+                       9, 10, 11, 12           # 8
                 #        14, 15, 16,              # 13
                 #        18, 19, 20
                        ]              # 17
