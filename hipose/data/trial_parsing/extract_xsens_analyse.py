@@ -1,4 +1,3 @@
-# original file
 import os
 import glob
 
@@ -53,6 +52,78 @@ convert_to_rel_npose_angles = \
              ],
             seq="XYZ")
 
+# def remove_zero_columns(df):
+#     """
+#     Removes columns from a DataFrame that contain only zeros.
+#     """
+#     # Sum the absolute values of each column. A sum of 0 means all values are 0.
+#     # The .any() check is used to handle potential NaN values as well.
+#     cols_to_keep = (df.abs().sum() != 0)
+#     return df.loc[:, cols_to_keep], cols_to_keep
+
+# def extract_xsens_analyse_raw_data2(xsens_trial_path):
+#     """
+#     Extracts data from Xsens .xlsx file.
+
+#     Args:
+#         xsens_file_path(str): path to the trial directory containing
+#             xsens data.
+
+#     Returns:
+#         (dict): extracted xsens raw data.
+
+#     """
+#     xsens_files = glob.glob(xsens_trial_path + "/*.xlsx")
+#     assert len(xsens_files) > 0, \
+#         f"No Xsens files were found in inside the directory. " \
+#         f"Confirm your data files or path! Path: {xsens_trial_path}"
+#     assert len(xsens_files) == 1, \
+#         f"Multiple Xsens trials were found inside the directory. " \
+#         f"Confirm your data files or path!  Files: {xsens_trial_path}"
+
+#     xsens_file_path = xsens_files[0]
+
+#     # extract xsens general data (.xlsx)
+#     import pandas as pd
+#     angular_velocity, imus_free_acc, imus_mag = pd.read_excel(
+#             xsens_file_path,
+#             sheet_name=[ #"Sensor Orientation - Euler",
+#                         "Segment Angular Velocity",       # segment angular velocity (gyroscope-like data in segment referential) ???
+#                         "Sensor Free Acceleration",       # sensor free acceleration (accelerometer data without gravity vector)
+#                         "Sensor Magnetic Field",          # sensor magnetometer data?
+#                         ],
+#             index_col=0
+#         ).values()
+
+#     n_samples = imus_free_acc.shape[0]
+
+#     # assumes a perfect sampling freq of 60hz
+#     timestamps = np.arange(1, n_samples + 1) * (1 / 60.)
+    
+#     upper_body_sensor_indices = [True, False, False, False, True, False, True, True, True, True, True, True, True, True, True, False, False, False, False, False, False, False, False]
+#     upper_body_column_indices_4 = [
+#         val for val in upper_body_sensor_indices for _ in range(4)
+#     ]  # for data that is stored in 4 coordinates, e.g. quaternions
+#     upper_body_column_indices_3 = [
+#         val for val in upper_body_sensor_indices for _ in range(4)
+#     ]  # for data that is stored in 3 coordinates, e.g. xyz of accelerataion and velocity
+
+#     imus_free_acc = imus_free_acc.loc[:, upper_body_column_indices_3]
+#     imus_mag = imus_mag.loc[:, upper_body_column_indices_3]
+#     imus_gyr = angular_velocity.loc[:, upper_body_column_indices_3]
+#     # print(imus_gyr.head())
+
+#     # sensor data (mapped to respective segments)
+#     imus_free_acc = imus_free_acc.values.reshape(n_samples, -1, 3)
+#     imus_gyr = imus_gyr.values.reshape(n_samples, -1, 3)
+#     imus_mag = imus_mag.values.reshape(n_samples, -1, 3)
+
+#     return dict(acc=imus_free_acc,
+#                 gyr=imus_gyr,
+#                 mag=imus_mag,
+#                 timestamps=timestamps,
+#                 num_samples=len(timestamps),
+#                 freq=60.)
 
 def extract_xsens_analyse_raw_data(xsens_trial_path):
     """
@@ -92,6 +163,15 @@ def extract_xsens_analyse_raw_data(xsens_trial_path):
             index_col=0
         ).values()
 
+    upper_body_sensor_indices = [True, False, False, False, True, False, True, True, True, True, True, True, True, True, True, False, False, False, False, False, False, False, False]
+    upper_body_column_indices_4 = [
+        val for val in upper_body_sensor_indices for _ in range(4)
+    ]  # for data that is stored in 4 coordinates, e.g. quaternions
+    upper_body_column_indices_3 = [
+        val for val in upper_body_sensor_indices for _ in range(3)
+    ]  # for data that is stored in 3 coordinates, e.g. xyz of accelerataion and velocity
+
+
     # add dim (S, [1], 3)  +  ignore com_vel / com_accel
     pos3s_com = np.expand_dims(pos3s_com.values, axis=1)[..., [0, 1, 2]]
     n_samples = len(pos3s_com)
@@ -103,14 +183,19 @@ def extract_xsens_analyse_raw_data(xsens_trial_path):
     segments_pos3d = segments_pos3d.values.reshape(n_samples, -1, 3)
 
     # segment orientation quaternions
+    segments_quat = segments_quat.loc[:, upper_body_column_indices_4]
     segments_quat = segments_quat.values.reshape(n_samples, -1, 4)
 
     # joint angles as euler (follow zxy?)
     joint_angles_euler_zxy = np.deg2rad(joint_angles_euler_zxy.values.reshape(n_samples, -1, 3))
 
+    imus_free_acc = imus_free_acc.loc[:, upper_body_column_indices_3]
+    imus_mag = imus_mag.loc[:, upper_body_column_indices_3]
+    imus_gyr = angular_velocity.loc[:, upper_body_column_indices_3]
+
     # sensor data (mapped to respective segments)
     imus_free_acc = imus_free_acc.values.reshape(n_samples, -1, 3)
-    imus_gyr = angular_velocity.values.reshape(n_samples, -1, 3)
+    imus_gyr = imus_gyr.values.reshape(n_samples, -1, 3)
     imus_mag = imus_mag.values.reshape(n_samples, -1, 3)
 
     return dict(acc=imus_free_acc,

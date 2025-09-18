@@ -47,8 +47,8 @@ def compute_and_evaluate_inertial_pose(example_data_path):
     )
 
     # create skeletons for 3D visualization
-    skel_pred = SkeletonXsens(ref_angles="npose", segment_lengths=None)
-    skel_gt = SkeletonXsens(ref_angles="npose", segment_lengths=None)
+    skel_pred = SkeletonMTwAwindaUpperBody(ref_angles="npose", segment_lengths=None)
+    skel_gt = SkeletonMTwAwindaUpperBody(ref_angles="npose", segment_lengths=None)
     vis = SkeletonVisualizer(dict(skel_gt=skel_gt,
                                   skel_pred=skel_pred),
                              display_segment_axis=True,         # turn off for faster rendering
@@ -72,7 +72,7 @@ def compute_and_evaluate_inertial_pose(example_data_path):
     # initialize filter fusion (example trial has 9 IMUs)
     from hipose.api.fusion_filter import InertialPoseFusionFilter
     ffilts = InertialPoseFusionFilter(
-            num_imus=23,
+            num_imus=11,
             ignore_mag=True,
             fusion_filter_alg="madgwick",
             s2s_calib_method="static",
@@ -83,7 +83,7 @@ def compute_and_evaluate_inertial_pose(example_data_path):
     calib_end = int(imu_data["freq"] * 7)
     ffilts.compute_imus_calibration(acc_calib_data=imu_data["acc"][calib_start:calib_end],
                                         gyr_calib_data=imu_data["gyr"][calib_start:calib_end],
-                                        mag_calib_data=imu_data["mag"][calib_start:calib_end]) 
+                                        mag_calib_data=imu_data["mag"][calib_start:calib_end])
                                         # manual_s2s_alignment=imus_manual_alignment)
 
 
