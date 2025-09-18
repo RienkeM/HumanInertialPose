@@ -100,17 +100,17 @@ def extract_xsens_analyse_raw_data2(xsens_trial_path):
     # assumes a perfect sampling freq of 60hz
     timestamps = np.arange(1, n_samples + 1) * (1 / 60.)
     
-    upper_body_indices = [
-    True, True, True, False, False, False, False, False, False, False, False,
-    False, True, True, True, False, False, False, True, True, True,
-    True, True, True, True, True, True, True, True, True, True,
-    True, True, True, True, True, True, True, True, True, True,
-    True, True, True, True, False, False, False, False, False, False,
-    False, False, False, False, False, False, False, False, False, False,
-    False, False, False, False, False, False, False, False]
-    imus_free_acc = imus_free_acc.loc[:, upper_body_indices]
-    imus_mag = imus_mag.loc[:, upper_body_indices]
-    imus_gyr = angular_velocity.loc[:, upper_body_indices]
+    upper_body_sensor_indices = [True, False, False, False, True, False, True, True, True, True, True, True, True, True, True, False, False, False, False, False, False, False, False]
+    upper_body_column_indices_4 = [
+        val for val in upper_body_sensor_indices for _ in range(4)
+    ]  # for data that is stored in 4 coordinates, e.g. quaternions
+    upper_body_column_indices_3 = [
+        val for val in upper_body_sensor_indices for _ in range(4)
+    ]  # for data that is stored in 3 coordinates, e.g. xyz of accelerataion and velocity
+
+    imus_free_acc = imus_free_acc.loc[:, upper_body_column_indices_3]
+    imus_mag = imus_mag.loc[:, upper_body_column_indices_3]
+    imus_gyr = angular_velocity.loc[:, upper_body_column_indices_3]
     # print(imus_gyr.head())
 
     # sensor data (mapped to respective segments)
@@ -163,6 +163,15 @@ def extract_xsens_analyse_raw_data(xsens_trial_path):
             index_col=0
         ).values()
 
+    upper_body_sensor_indices = [True, False, False, False, True, False, True, True, True, True, True, True, True, True, True, False, False, False, False, False, False, False, False]
+    upper_body_column_indices_4 = [
+        val for val in upper_body_sensor_indices for _ in range(4)
+    ]  # for data that is stored in 4 coordinates, e.g. quaternions
+    upper_body_column_indices_3 = [
+        val for val in upper_body_sensor_indices for _ in range(3)
+    ]  # for data that is stored in 3 coordinates, e.g. xyz of accelerataion and velocity
+
+
     # add dim (S, [1], 3)  +  ignore com_vel / com_accel
     pos3s_com = np.expand_dims(pos3s_com.values, axis=1)[..., [0, 1, 2]]
     n_samples = len(pos3s_com)
@@ -174,14 +183,19 @@ def extract_xsens_analyse_raw_data(xsens_trial_path):
     segments_pos3d = segments_pos3d.values.reshape(n_samples, -1, 3)
 
     # segment orientation quaternions
+    segments_quat = segments_quat.loc[:, upper_body_column_indices_4]
     segments_quat = segments_quat.values.reshape(n_samples, -1, 4)
 
     # joint angles as euler (follow zxy?)
     joint_angles_euler_zxy = np.deg2rad(joint_angles_euler_zxy.values.reshape(n_samples, -1, 3))
 
+    imus_free_acc = imus_free_acc.loc[:, upper_body_column_indices_3]
+    imus_mag = imus_mag.loc[:, upper_body_column_indices_3]
+    imus_gyr = angular_velocity.loc[:, upper_body_column_indices_3]
+
     # sensor data (mapped to respective segments)
     imus_free_acc = imus_free_acc.values.reshape(n_samples, -1, 3)
-    imus_gyr = angular_velocity.values.reshape(n_samples, -1, 3)
+    imus_gyr = imus_gyr.values.reshape(n_samples, -1, 3)
     imus_mag = imus_mag.values.reshape(n_samples, -1, 3)
 
     return dict(acc=imus_free_acc,

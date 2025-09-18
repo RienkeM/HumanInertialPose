@@ -5,7 +5,7 @@ import numpy as np
 from hipose.data.trial_parsing.extract_xsens_analyse import extract_xsens_analyse_raw_data
 from hipose.data.dataset_parsing.parse_cip_mtwawinda_dataset import map_segs_xsens2mtwawinda
 from hipose.data.trial_parsing.extract_xsens_analyse import extract_xsens_analyse_data
-from hipose.skeleton import SkeletonXsens, SkeletonMTwAwinda, SkeletonVisualizer
+from hipose.skeleton import SkeletonXsens, SkeletonMTwAwinda, SkeletonVisualizer, SkeletonXsensUpper, SkeletonMTwAwindaUpperBody
 
 
 def compute_and_evaluate_inertial_pose(example_data_path):
@@ -20,14 +20,14 @@ def compute_and_evaluate_inertial_pose(example_data_path):
     )
 
     # create skeletons for 3D visualization
-    skel_pred = SkeletonMTwAwinda(ref_angles="npose", segment_lengths=None)
-    skel_gt = SkeletonXsens(ref_angles="npose", segment_lengths=None)
+    skel_pred = SkeletonMTwAwindaUpperBody(ref_angles="npose", segment_lengths=None)
+    skel_gt = SkeletonMTwAwindaUpperBody(ref_angles="npose", segment_lengths=None)
     vis = SkeletonVisualizer(dict(skel_gt=skel_gt,
                                   skel_pred=skel_pred),
                              display_segment_axis=True,         # turn off for faster rendering
                              animation_fps=imu_data["freq"])
 
-    # define metrics to evaluate (between ergowear and xsens skeletons)
+    # define metrics to evaluate (between MTwAwinda and xsens skeletons)
     from hipose.metrics import MetricsAnalyser, QADistMetric, AUCMetric, TimeMetric
     metrics_log = MetricsAnalyser(
             exp_name="ExampleMetrics",
@@ -45,20 +45,12 @@ def compute_and_evaluate_inertial_pose(example_data_path):
     # initialize filter fusion (example trial has 9 IMUs)
     from hipose.api.fusion_filter import InertialPoseFusionFilter
     ffilts = InertialPoseFusionFilter(
-            num_imus=17,
+            num_imus=11,
             ignore_mag=True,
             fusion_filter_alg="madgwick",
             s2s_calib_method="static",
             default_data_freq=imu_data["freq"]
     )
-
-    # initialize calibration params from static NPose
-    # (example trial has 5s of NPose at the start)
-#     calib_s = int(imu_data["freq"] * 5)
-#     ffilts.compute_imus_calibration(acc_calib_data=imu_data["acc"][0:calib_s],
-#                                     gyr_calib_data=imu_data["gyr"][0:calib_s],
-#                                     mag_calib_data=imu_data["mag"][0:calib_s],
-#                                     manual_s2s_alignment=default_ergowear_imus_manual_alignment)
 
     calib_start = int(imu_data["freq"] * 2)
     calib_end = int(imu_data["freq"] * 7)
@@ -81,7 +73,8 @@ def compute_and_evaluate_inertial_pose(example_data_path):
         pred_ori = ffilts.update(acc=acc, gyr=gyr, mag=mag)
 
         # select matching segments from GT
-        mapgt_ori = map_segs_xsens2mtwawinda(gt_ori)
+        # mapgt_ori = map_segs_xsens2mtwawinda(gt_ori)
+        mapgt_ori = gt_ori   # already done by selection of columns in extract_xsens_analyse_raw_data()
 
         # compute metrics between computed segment orientations and GT
         end_time = time.perf_counter() - start_time
