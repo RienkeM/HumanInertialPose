@@ -6,7 +6,34 @@ from hipose.data.trial_parsing.extract_xsens_analyse import extract_xsens_analys
 from hipose.data.dataset_parsing.parse_cip_mtwawinda_dataset import map_segs_xsens2mtwawinda
 from hipose.data.trial_parsing.extract_xsens_analyse import extract_xsens_analyse_data
 from hipose.skeleton import SkeletonXsens, SkeletonMTwAwinda, SkeletonVisualizer, SkeletonXsensUpper, SkeletonMTwAwindaUpperBody
+from hipose.rotations import convert_euler_to_quat
 
+imus_manual_alignment = \
+            convert_euler_to_quat(
+                    # torso/head IMUs
+                    [[0,           np.pi / 2,  0        ],
+                     [0,           np.pi / 2,  np.pi    ],
+                     [0,           np.pi / 2,  0        ],
+                     # Right Arm IMUs
+                     [np.pi / 2,   0,         -np.pi / 2],
+                     [0,           np.pi / 2, -np.pi / 2],
+                     [0,           np.pi / 2, -np.pi / 2],
+                     [0,           np.pi / 2, -np.pi / 2],
+                     # Left Arm IMUs
+                     [np.pi / 2,   0,         -np.pi / 2],
+                     [0,           np.pi / 2,  np.pi / 2],
+                     [0,           np.pi / 2,  np.pi / 2],
+                     [0,           np.pi / 2,  np.pi / 2],
+                     # Right leg IMUs
+                     [0,           np.pi / 2, -np.pi / 2],
+                     [np.pi / 4,   np.pi / 2,  np.pi / 2],
+                     [0,          -np.pi / 6,  np.pi    ],
+                     # Left leg IMUs
+                     [0,           np.pi / 2,  np.pi / 2],
+                     [-np.pi / 4,  np.pi / 2, -np.pi / 2],
+                     [0,          -np.pi / 6,  np.pi    ],
+                     ],
+                    seq="XYZ")
 
 def compute_and_evaluate_inertial_pose(example_data_path):
     # initialize raw inertial data (MTwAwinda dataset)
@@ -20,32 +47,32 @@ def compute_and_evaluate_inertial_pose(example_data_path):
     )
 
     # create skeletons for 3D visualization
-    skel_pred = SkeletonMTwAwindaUpperBody(ref_angles="npose", segment_lengths=None)
-    skel_gt = SkeletonMTwAwindaUpperBody(ref_angles="npose", segment_lengths=None)
+    skel_pred = SkeletonXsens(ref_angles="npose", segment_lengths=None)
+    skel_gt = SkeletonXsens(ref_angles="npose", segment_lengths=None)
     vis = SkeletonVisualizer(dict(skel_gt=skel_gt,
                                   skel_pred=skel_pred),
                              display_segment_axis=True,         # turn off for faster rendering
                              animation_fps=imu_data["freq"])
 
     # define metrics to evaluate (between MTwAwinda and xsens skeletons)
-    from hipose.metrics import MetricsAnalyser, QADistMetric, AUCMetric, TimeMetric
-    metrics_log = MetricsAnalyser(
-            exp_name="ExampleMetrics",
-            metrics=dict(
-                    QuatAngleDistance=QADistMetric("QuatAngleDistance",
-                                                   description="segment_angles",
-                                                   err_thresh=np.pi / 6,
-                                                   show_degrees=True),
-                    auc_qad=AUCMetric("auc_qad", description="segment_angles",
-                                      dist="qad", units="%",
-                                      pcp_thresh_range=(0, np.pi)),
-                    processing_time=TimeMetric("processing_time", units="ms"),
-            ))
+#     from hipose.metrics import MetricsAnalyser, QADistMetric, AUCMetric, TimeMetric
+#     metrics_log = MetricsAnalyser(
+#             exp_name="ExampleMetrics",
+#             metrics=dict(
+#                     QuatAngleDistance=QADistMetric("QuatAngleDistance",
+#                                                    description="segment_angles",
+#                                                    err_thresh=np.pi / 6,
+#                                                    show_degrees=True),
+#                     auc_qad=AUCMetric("auc_qad", description="segment_angles",
+#                                       dist="qad", units="%",
+#                                       pcp_thresh_range=(0, np.pi)),
+#                     processing_time=TimeMetric("processing_time", units="ms"),
+#             ))
 
     # initialize filter fusion (example trial has 9 IMUs)
     from hipose.api.fusion_filter import InertialPoseFusionFilter
     ffilts = InertialPoseFusionFilter(
-            num_imus=11,
+            num_imus=23,
             ignore_mag=True,
             fusion_filter_alg="madgwick",
             s2s_calib_method="static",
@@ -56,8 +83,8 @@ def compute_and_evaluate_inertial_pose(example_data_path):
     calib_end = int(imu_data["freq"] * 7)
     ffilts.compute_imus_calibration(acc_calib_data=imu_data["acc"][calib_start:calib_end],
                                         gyr_calib_data=imu_data["gyr"][calib_start:calib_end],
-                                        mag_calib_data=imu_data["mag"][calib_start:calib_end])
-#               ???                   manual_s2s_alignment=default_ergowear_imus_manual_alignment)
+                                        mag_calib_data=imu_data["mag"][calib_start:calib_end]) 
+                                        # manual_s2s_alignment=imus_manual_alignment)
 
 
     # perform filter fusion on trial data to obtain segment orientations
@@ -78,12 +105,12 @@ def compute_and_evaluate_inertial_pose(example_data_path):
 
         # compute metrics between computed segment orientations and GT
         end_time = time.perf_counter() - start_time
-        metrics_log.update(
-                dict(QuatAngleDistance=[pred_ori, mapgt_ori],
-                     auc_qad=[pred_ori, mapgt_ori],
-                     processing_time=[end_time * 1000.],
-                     )
-        )
+        # metrics_log.update(
+        #         dict(QuatAngleDistance=[pred_ori, mapgt_ori],
+        #              auc_qad=[pred_ori, mapgt_ori],
+        #              processing_time=[end_time * 1000.],
+        #              )
+        # )
 
         # visualize motion in 3D (pred vs GT)
         vis.show3d(
@@ -96,7 +123,7 @@ def compute_and_evaluate_inertial_pose(example_data_path):
         )
 
     # show computed metrics
-    metrics_log.log_all(save_path=None, show_plots=True, print_metrics=True)
+#     metrics_log.log_all(save_path=None, show_plots=True, print_metrics=True)
 
 
 if __name__ == "__main__":
